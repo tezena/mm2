@@ -70,6 +70,8 @@
     )
 )
 
+
+
 ; --- 4. Finalize (Branching & Cleanup) ---
 ; We promote to Pattern, and REMOVE the intermediates immediately.
 (exec 4
@@ -92,7 +94,6 @@
 
 (exec 6 
     (, (AbstractPattern ($link $var-x $var-y)))
-    
     (O (+ (exec 6 
             (, (db ($link $x $y))) 
             
@@ -121,11 +122,8 @@
     )
 )
 
-(exec 7 
-   
-    (, (SpecializationOf $abstract ($link X $y))) 
+(exec 7 (, (SpecializationOf $abstract ($link X $y))) 
     (O 
-
        (+ (exec 7
             (, (db ($link $x $y)))
             (O (count 
@@ -138,4 +136,32 @@
     )
 )
 
+(exec 8 (, (SpecializationWithCount $abstract ($link $x $y)  $n) (ThresholdInt $thresh) )
+        (O 
+            (pure (Checked ($link $x $y)   $status) 
+                  $status
+                    (i64_to_string 
+                         (signum_i64 
+                            (sum_i64 
+                                  (sub_i64 (i64_from_string $n) $thresh) 
+                                  (i64_from_string 1)
+                    )
+                )
+            )
+       )
+))
 
+(exec 9 (, (Checked ($link $x $y) 1) (SpecializationWithCount $abstract ($link $x $y)  $n))
+        (O
+            (+ (CandidatePattern ($link $x $y)))
+            (- (Checked ($link $x $y) 1)) 
+            (- (SpecializationWithCount $abstract ($link $x $y)  $n))       
+    )
+)
+
+(exec 10 (, (SpecializationWithCount $abstract ($link $x $y)  $n) (Checked ($link $x $y) $status))
+        (O 
+            (- (SpecializationWithCount $abstract ($link $x $y)  $n))  
+            (- (Checked ($link $x $y) $status)) 
+    )
+)

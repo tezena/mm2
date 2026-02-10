@@ -29,7 +29,7 @@
 
 
 
-; --- 1. Global Setup ---
+;  Global Setup
 (Threshold 4)
 
 (exec 0
@@ -40,7 +40,7 @@
     )
 )
 
-; --- 2. Count Links ---
+;  Count Links 
 (exec 2
     (, (db ($link $x $y)))
     (O 
@@ -48,7 +48,8 @@
     )
 )
 
-; --- 3. Compute Status (The Filter) ---
+
+;  Compute Status (The Filter) 
 ; Logic: IF (Count - Threshold + 1) > 0 THEN "1" ELSE "0" or "-1"
 ; If Count == Threshold, (0 + 1) = 1. (Pass)
 ; If Count < Threshold, (-1 + 1) = 0. (Fail)
@@ -72,8 +73,6 @@
 
 
 
-; --- 4. Finalize (Branching & Cleanup) ---
-; We promote to Pattern, and REMOVE the intermediates immediately.
 (exec 4
     (, (Checked $link $cnt 1) (Count $link $cnt))
     (O
@@ -109,7 +108,6 @@
    
     (, (SpecializationOf $abstract ($link $x Y))) 
     (O 
-
        (+ (exec 7
             (, (db ($link $x $y)))
             (O (count 
@@ -118,21 +116,23 @@
                    $y
                ))
        ))
-       (- (SpecializationOf $abstract $candidate))
+       (- (SpecializationOf $abstract ($link $x Y)))
     )
 )
+
+
 
 (exec 7 (, (SpecializationOf $abstract ($link X $y))) 
     (O 
        (+ (exec 7
             (, (db ($link $x $y)))
             (O (count 
-                  (SpecializationWithCount $abstract ($link $X $y)  $n) 
+                  (SpecializationWithCount $abstract ($link X $y)  $n) 
                   $n 
                    $x
                ))
        ))
-       (- (SpecializationOf $abstract $candidate))
+       (- (SpecializationOf $abstract ($link X $y)))
     )
 )
 
@@ -165,3 +165,180 @@
             (- (Checked ($link $x $y) $status)) 
     )
 )
+
+
+
+(exec 10
+    (, (CandidatePattern ($l1 $a1 $b1)) 
+       (CandidatePattern ($l2 $a2 $b2))) 
+    
+    (O
+       ; Head to Head 
+       (+ (conj ($l1 $a1 $b1) ($l2 $a2 $b2) 1 1))
+       (- (conj ($l1 $a1 $b1) ($l1 $a1 $b1) 1 1))
+
+       ; Head to Tail 
+       (+ (conj ($l1 $a1 $b1) ($l2 $a2 $b2) 1 2))
+       (- (conj ($l1 $a1 $b1) ($l1 $a1 $b1) 1 2))
+
+       ; Tail to Head 
+       (+ (conj ($l1 $a1 $b1) ($l2 $a2 $b2) 2 1))
+       (- (conj ($l1 $a1 $b1) ($l1 $a1 $b1) 2 1))
+
+       ; Tail to Tail 
+       (+ (conj ($l1 $a1 $b1) ($l2 $a2 $b2) 2 2))
+       (- (conj ($l1 $a1 $b1) ($l1 $a1 $b1) 2 2))
+
+    )
+)
+
+
+;; Head to Head
+(exec 11
+    (, (conj ($l1 $a1 $b1) ($l2 $a2 $b2) 1 1))
+    (O
+       (+ (exec 11
+            (, (db ($l1 $shared $b1)) (db ($l2 $shared $b2))) 
+            (O (count 
+                  (conjpat (, ($l1 $var $b1) ($l2 $var $b2))  $count)   
+                  $count
+                  ($shared $b1 $b2)
+               )  )
+       ))
+       (- (conj ($l1 $a1 $b1) ($l2 $a2 $b2) 1 1)) 
+
+    )
+)
+
+;; (Head to Tail)
+(exec 11
+    (, (conj ($l1 $a1 $b1) ($l2 $a2 $b2) 1 2))
+    (O
+       (+ (exec 11
+            (, (db ($l1 $shared $b1)) (db ($l2 $a2 $shared))) 
+            (O (count  (conjpat  (, ($l1 $var $b1) ($l2 $a2 $var))  $count)   
+                  $count
+                  ($shared $b1 $a2)
+               )
+               )
+       ))
+       (- (conj ($l1 $a1 $b1) ($l2 $a2 $b2) 1 2)) 
+
+    )
+)
+
+;; (Tail to Head)
+(exec 11
+    (, (conj ($l1 $a1 $b1) ($l2 $a2 $b2) 2 1))
+    (O
+       (+ (exec 11 (, (db ($l1 $a1 $shared)) (db ($l2 $shared $b2))) 
+            (O (count 
+                  (conjpat (, ($l1 $a1 $var) ($l2 $var $b2)) $count)   
+                  $count
+                  ($shared $a1 $b2)
+               )
+               )
+       ))
+       (- (conj ($l1 $a1 $b1) ($l2 $a2 $b2) 2 1)) 
+
+    )
+)
+
+
+
+;; (Tail to tail )
+(exec 11
+    (, (conj ($l1 $a1 $b1) ($l2 $a2 $b2) 2 2))
+    (O
+       (+ (exec 11
+            (, (db ($l1 $a1 $shared)) (db ($l2 $a2 $shared))) 
+            (O (count 
+                  (conjpat (, ($l1 $a1 $var) ($l2 $a2 $var)) $count)   
+                  $count
+                  ($shared $a1 $a2)
+               )
+               )
+       ))
+       (- (conj ($l1 $a1 $b1) ($l2 $a2 $b2) 2 2)) 
+    )
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+; ; --- 3-CONJUNCT ---
+; (exec 20
+;     (, (ConjoinedPattern (, $p1 $p2) $n) 
+;        (CandidatePattern ($l_new $a_new $b_new)))
+    
+;     (O
+;        (+ (TryExtend3 (, $p1 $p2) ($l_new $a_new $b_new) 1 1)) 
+;        (+ (TryExtend3 (, $p1 $p2) ($l_new $a_new $b_new) 1 2))
+
+;        (+ (TryExtend3 (, $p1 $p2) ($l_new $a_new $b_new) 2 1)) 
+;        (+ (TryExtend3 (, $p1 $p2) ($l_new $a_new $b_new) 2 2)) 
+;     )
+; )
+
+; (exec 21
+;     ; Task: Extend the tuple ($p1 $p2) by joining $new to $p1's first argument
+;     (, (TryExtend3 (, ($l1 $a1 $b1) $p2) ($l_new $a_new $b_new) 1 1))
+    
+;     (O
+;        (+ (exec 210
+;             (, (db ($l1 $shared $b1)) 
+;                (db ($l_new $shared $b_new))) 
+
+;             (O (count 
+;                   ; Output the Triple: (, P1 P2 P3)
+;                   (ConjoinedPattern 
+;                       (, ($l1 $var $b1) $p2 ($l_new $var $b_new)) 
+;                       $count)
+                  
+;                   $count
+;                   ($shared $b1 $p2 $b_new)
+;                ))
+;        ))
+;        ; Cleanup
+;        (- (TryExtend3 (, ($l1 $a1 $b1) $p2) ($l_new $a_new $b_new) 1 1))
+;     )
+; )
+
+; ; --- EXECUTE: Connect New Pattern to P2 (Head-Head) ---
+; (exec 21
+;     (, (TryExtend3 (, $p1 ($l2 $a2 $b2)) ($l_new $a_new $b_new) 2 1))
+    
+;     (O
+;        (+ (exec 210
+;             (, (db ($l2 $shared $b2)) (db ($l_new $shared $b_new))) 
+;             (O (count 
+;                   (ConjoinedPattern 
+;                       (, $p1 ($l2 $var $b2) ($l_new $var $b_new)) 
+;                       $count)
+;                   $count
+;                   ($p1 $shared $b2 $b_new)
+;                ))
+;        ))
+;        (- (TryExtend3 (, $p1 ($l2 $a2 $b2)) ($l_new $a_new $b_new) 2 1))
+;     )
+; )
+

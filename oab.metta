@@ -324,7 +324,7 @@
 ;     )
 ; )
 
-; ; --- EXECUTE: Connect New Pattern to P2 (Head-Head) ---
+
 ; (exec 21
 ;     (, (TryExtend3 (, $p1 ($l2 $a2 $b2)) ($l_new $a_new $b_new) 2 1))
     

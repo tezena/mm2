@@ -1,0 +1,4 @@
+wasm2wat sub.wasm -o sub.wat
+
+
+rustc sub.rs --target wasm32-unknown-unknown --crate-type=cdylib -O

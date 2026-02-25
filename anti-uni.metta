@@ -1,15 +1,41 @@
-(db (a x))
-(db (a b))
-(db (a c))
+(db (Inheritance Allen sodaDrinker))
+(db (Inheritance Abe sodaDrinker))
+(db (Inheritance Lily sodaDrinker))
+(db (Inheritance Cason sodaDrinker))
 
-(dbc (a x d))
-(dbc (a b g))
-(dbc (a c f))
+(db (Inheritance Allen sodaDrinker))
+(db (Inheritance Abe sodaDrinker))
+(db (Inheritance Lily sodaDrinker))
+(db (Inheritance Cason sodaDrinker))
 
-(exec 0 (, ($d $x)) 
+(db (Inheritance Lily ugly))
+(db (Inheritance Allen ugly))
+(db (Inheritance Abe ugly))
+(db (Inheritance Cason ugly))
+
+(db (Inheritance Lily  woman))
+(db (Inheritance Emily woman))
+(db (Inheritance Lucy woman))
+
+(db (Inheritance Allen man))
+(db (Inheritance Abe man))
+(db (Inheritance Cason man))
+
+(db (Inheritanc Allen human))
+(db (Inheritanc Abe human))
+(db (Inheritanc Cason human))
+(db (Inheritanc Lily human))
+(db (Inheritanc Emily human))
+(db (Inheritanc Lucy human) )
+
+
+
+(exec 0 (, (db $x)) 
 (O (AU (out 0 $x)))
-
 )
+
+(out 0 ($a $b $c))
+
 
 
 

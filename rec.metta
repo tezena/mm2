@@ -36,4 +36,6 @@
 (= (match-&mork $pattern $Pat) 
    (quote (progn (match &mork $pattern $pattern)
           $Pat)))
+
+          
 !(add-translator-rule! match-&mork)

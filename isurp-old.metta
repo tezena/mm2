@@ -25,7 +25,7 @@
 (db (Inheritance Lucy human) )
 
 
-
+;; Function definitions 
 ((countPattern $space ($link $x $y) -> $out) 
     (, ($space ($link $x $y))) 
      (O 
@@ -33,6 +33,10 @@
                 $count  
                 ( $x $y))))
 
+
+((universal_count $loc -> $out)
+    (, ($loc (patternCount ($link) $count)) ($space ($link $x $y))
+        (O ())))
 (exec 0 
     (, ((countPattern db ($link $x $y) -> res ) $p $s))
        (O  (+ (exec 0 $p $s))))
@@ -40,6 +44,7 @@
 
 
 
+((counter ))
 
 
 ;; ==========================================

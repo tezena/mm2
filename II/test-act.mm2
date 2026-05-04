@@ -1,0 +1,3 @@
+(exec 0
+  (I (ACT data.act (Inheritance $x $y)))
+  (, (Inheritance $x $y)))

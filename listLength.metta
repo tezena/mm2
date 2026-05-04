@@ -19,12 +19,6 @@
 
 
 
-
-
-
-
-
-
 (exec (make-list (S (S (S Z))) Nil)
       (,
         ; 1. Match the current state

@@ -1,0 +1,195 @@
+; Example on how to run
+; Needs a database with values in the format of ``` (db ($link $a $b)) ```
+
+(exec 0
+    (, ((total_count db (:: (Inheritance abe kebe) (:: (Inheritance kebe abe ) (:: (Inheritance kebbe abbe ))))) $p $t))
+    (, (exec 0 $p $t))
+)
+
+
+
+; Counts the number of links in the database
+; Expects the data to be in the format of: ``` ($dbspace ($link $a $b)) ```
+
+((dbcounter $db)
+    (, ($db $pt))
+    (O
+        (count
+            (dbcount $db $count)
+            $count
+            ($pt)
+        )
+    )
+)
+
+
+
+; Counts the number of patterns in an expression
+; Expects in the format of: ``` (:: (Inheritance abe kebe) (:: (Inheritance kebe abe ))) ```
+
+((patterncounter $ptrn)
+    (, ((counter $ptrn) $p $t))
+    (, (tobecounted $ptrn) (exec 0 $p $t))
+)
+
+((counter (:: $pattern $next))
+    (, (tobecounted (:: $pattern $next)))
+    (O 
+        (+ (count ((:: $pattern $next) (:: $pattern $next)) 1))
+        (+ 
+            (exec counter
+                (, (count ((:: $mptrn $m) (:: $ptrn $l)) $n) (exec counter $p $t))
+                (O
+                    (- (count ((:: $mptrn $m) (:: $ptrn $l)) $n))
+                    (pure
+                        (count ((:: $mptrn $m) $l) $b)
+                        $b
+                        (i64_to_string (sum_i64 (i64_from_string $n) (i64_from_string 1)))
+                    )
+                    (+ (exec counter $p $t))
+                    (+
+                        (exec 0 
+                            (, (count ($y (:: $x)) $b) (tobecounted $patterns))
+                            (O
+                                (- (tobecounted $patterns))
+                                (- (count ($y (:: $x)) $b))
+                                (+ (countedpattern $y $b))
+                                (+ 
+                                    (exec 0
+                                        (, (dbcount $db $dbcount) (countedpattern $a $b))
+                                        (, 
+                                            (exec 0 
+                                                (, ((cal_binomial ($dbcount $b)) $ppp $ttt))
+                                                (, (exec 0 $ppp $ttt))
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+    )
+)
+
+
+
+; Calculates the binomial coefficient,
+; First it calculates the permutations of P(n, k) and P(k, k) then divides them
+
+
+((cal_binomial ($n $k))
+    (, (permutation0 $p $t))
+    (O
+        (+ (permutation ($n $k)))
+        (+ (permutation ($k $k)))
+        
+        (+ 
+            (exec 0 
+                (, (permutation0 $p $t)) 
+                (, (exec 1 $p $t))
+            )
+        )
+        (+
+            (exec 2
+                (, (permutation ($n $k) $p1) (permutation ($k $k) $p2))
+                (O
+                    (pure
+                        (cal_binomial ($n $k) $s)
+                        $s
+                        (i64_to_string (div_i64 (i64_from_string $p1) (i64_from_string $p2)))
+                    )
+                    (+
+                        (exec (6)
+                            (, (dbcount $db $dbcount) (countedpattern $pattern $ptrncount) (cal_binomial ($dbcount $ptrncount) $calbin))
+                            (, (total_count ($db $pattern) $calbin))
+                        )
+                    )
+                )
+            )
+        )
+    )
+)
+
+
+
+
+
+
+
+
+; Base permutation values
+(permutation (1 1) 1)
+(permutation (1 0) 1)
+
+
+(permutation0
+        (, (permutation ($num1 $num2) $per) (permutation ($n1 $n2)) (permutation2 $p $t))
+        (O
+                (- (permutation ($num1 $num2)))
+                (- (permutation ($n1 $n2)))
+                (pure
+                    (($n1 $m) permutation ($n1 $n2) $n1)
+                    $m
+                    (i64_to_string (sub_i64 (i64_from_string $n1) (i64_from_string $n2)))
+                )
+                (+ (exec 1 $p $t))
+        )
+)
+
+(permutation1 
+       (, (($n $m) permutation ($n1 $n2) $per) (permutation2 $p $t))
+    (O
+        (- (($n $m) permutation ($n1 $n2) $per))
+        (pure
+            (($n $m) permutation ($n1 $n2) $a)
+            $a
+            (i64_to_string (product_i64 (i64_from_string $n) (i64_from_string $per)))
+        )
+        (+ (exec 1 $p $t))
+    ) 
+)
+
+
+(permutation2
+        (, (($n $m) permutation ($n1 $n2) $per) (permutation1 $p $t))
+        (O
+                (- (($n $m) permutation ($n1 $n2) $per))
+                (pure
+                        (($a $m) permutation ($n1 $n2) $per)
+                        $a
+                        (i64_to_string (sub_i64 (i64_from_string $n) (i64_from_string 1)))
+                )
+                (+ (exec 1 $p $t))
+                (+ (exec 0 
+                        (, (($m $m) permutation ($n1 $n2) $per)) 
+                        (O 
+                                (- (($m $m) permutation ($n1 $n2) $per)) 
+                                (+ (permutation ($n1 $n2) $per))
+                        )
+                ))
+        )
+)
+
+
+
+; Calls the pattern counter and database counter functions
+; How it works:
+; 1. First counts the number of values in the database and the number of patterns in the expression
+; 2. Right after it finishes counting patterns in the expression it uses the values of the counted database values and patterns 
+;    and calls the cal_binomial function which calculates the binomial coefficient, (the call to the cal_binomial function is
+;    inside the patterncounter or counter function, for consecutiveness)
+; 3. After it calculates the binomial coefficient it saves the result, (the code that saves the result is in the cal_binomial 
+;    function for consecutiveness reasons)
+
+
+((total_count $db $pattern)
+    (, ((patterncounter $pattern) $p $t) ((dbcounter $db) $pp $tt))
+    (, 
+        (exec 0 $pp $tt)
+        (exec 0 $p $t) 
+    )
+)
